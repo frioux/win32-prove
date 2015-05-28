@@ -1,0 +1,21 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use JSON;
+use Capture::Tiny 'capture';
+use Sys::Hostname 'hostname';
+use autodie;
+
+exit 0 if -e ".pem";
+
+print "generating private key\n";
+my $json = capture {
+   system qw(
+      aws ec2 create-key-pair --key-name), hostname();
+};
+
+open my $fh, '>', '.pem';
+print $fh decode_json($json)->{KeyMaterial};
+close $fh;

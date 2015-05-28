@@ -7,10 +7,14 @@ use JSON;
 use Capture::Tiny 'capture';
 use IO::All;
 use Time::HiRes qw(tv_interval gettimeofday);
+use Try::Tiny;
 
 my $to_run = io->file('./setup.psh')->all;
 # note that you *cannot* escape the entities in this "xml"
 my $xml = "<powershell>$to_run</powershell>";
+
+# TODO: create key `aws ec2 create-key-pair`
+# TODO: create security-group `aws ec2 create-security-group/authorize-security-group-{egress,ingress}`,
 
 my $t0 = [gettimeofday];
 my $created = capture {
@@ -33,13 +37,17 @@ print "Instance created: $instance_id\n";
 print "polling for password data\n";
 my $password;
 while (!$password) {
-   my $password_data = capture {
+   my ($password_data, $err) = capture {
       system qw(
          aws ec2 get-password-data --instance-id), $instance_id,
-         qw(--priv-launch-key ~/Dropbox/MyKeyPair.pem);
+         qw(--priv-launch-key /home/frew/Dropbox/MyKeyPair.pem);
    };
 
-   $password = decode_json($password_data)->{PasswordData};
+   try {
+      $password = decode_json($password_data)->{PasswordData};
+   } catch {
+      die "$_ (content: $password_data, err: $err)"
+   };
 
    sleep 2;
 }

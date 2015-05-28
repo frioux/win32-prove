@@ -1,0 +1,38 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use JSON;
+use Capture::Tiny 'capture';
+
+die "Usage: $0 <instance-id> [screen-res]\n" unless @ARGV >= 1;
+
+my $instance_id = shift;
+my $screen_size = shift || '1024x768';
+
+my $password;
+my $once = 0;
+while (!$password) {
+   my $data = capture {
+      system qw(
+         aws ec2 get-password-data --instance-id), $instance_id,
+         qw( --priv-launch-key .pem),
+   };
+
+   sleep 2 unless $once++;
+
+   $password = decode_json($data)->{PasswordData};
+}
+
+my $ip_address;
+{
+   my $data = capture {
+      system qw(aws ec2 describe-instances --instance-ids), $instance_id
+   };
+
+   $ip_address =
+      decode_json($data)->{Reservations}[0]{Instances}[0]{PublicIpAddress};
+}
+
+exec qw(rdesktop -u Administrator -p), $password, qw( -K -g), $screen_size, qw( -z -x l), $ip_address

@@ -1,0 +1,26 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use JSON;
+use IO::All;
+use Capture::Tiny 'capture';
+use Process::Status;
+
+use experimental 'postderef';
+
+my $data = decode_json(io->file('.serverdata')->all);
+
+system qw(aws ec2 terminate-instances --instance-ids), $data->{instance_ids}->@*;
+system qw(aws ec2 release-address --allocation-id), $data->{allocation_id};
+
+for my $sg_id ($data->{sg_ids}->@*) {
+   my $success = 0;
+   while (!$success) {
+      system qw(aws ec2 delete-security-group --group-id), $sg_id;
+      $success = Process::Status->new->is_success;
+   }
+}
+
+unlink '.serverdata';

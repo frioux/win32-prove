@@ -1,5 +1,5 @@
 $ua = new-object System.Net.WebClient
 $ua.DownloadFile("https://cygwin.com/setup-x86_64.exe", "C:\setup.exe")
-$ua.DownloadFile("http://strawberryperl.com/download/5.20.2.1/strawberry-perl-5.20.2.1-64bit.msi", "C:\strawb.exe")
+$ua.DownloadFile("http://strawberryperl.com/download/5.20.2.1/strawberry-perl-5.20.2.1-64bit.msi", "C:\strawb.msi")
 
 C:\setup.exe -q -P openssh

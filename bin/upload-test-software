@@ -1,0 +1,21 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use JSON;
+use Capture::Tiny 'capture';
+
+die "Usage: $0 <lynx-zip-path> <client-msi-path>\n" unless @ARGV == 2;
+
+my $lynx = shift;
+my $client = shift;
+
+die "no such zip: $lynx\n" unless -f $lynx;
+die "no such msi: $client\n" unless -f $client;
+
+system qw( aws s3 rm s3://lynx-testing/LynxClient.msi );
+system qw( aws s3 cp ), $client, 's3://lynx-testing/LynxClient.msi', '--acl', 'authenticated-read';
+
+system qw( aws s3 rm s3://lynx-testing/lynx.zip );
+system qw( aws s3 cp ), $lynx, 's3://lynx-testing/lynx.zip', '--acl', 'authenticated-read';
