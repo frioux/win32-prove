@@ -1,0 +1,15 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use API;
+
+use IO::Async::Loop;
+
+my $loop = IO::Async::Loop->new;
+my $api = API->new(
+   loop => $loop,
+);
+
+use Devel::Dwarn;
+Dwarn [$api->instance_ips->get]
